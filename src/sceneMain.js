@@ -13,6 +13,7 @@
       this.fxLayer = this.add.container(0, 0);
       this.world.add([this.tileLayer, this.overlayLayer, this.actorLayer, this.fxLayer]);
       this.cameras.main.setBackgroundColor(0xbde1ff);
+      this.input.addPointer(2);
 
       this.hover = { col: 0, row: 0, visible: false };
       this.lightingOverlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x11233f, 0).setOrigin(0).setScrollFactor(0).setDepth(999);
@@ -22,8 +23,9 @@
         this.dragStart = { x: pointer.x, y: pointer.y, wx: this.world.x, wy: this.world.y };
       });
       this.input.on('pointermove', (pointer) => {
-        const localX = pointer.x - this.world.x;
-        const localY = pointer.y - this.world.y;
+        const scale = this.world.scaleX || 1;
+        const localX = (pointer.x - this.world.x) / scale;
+        const localY = (pointer.y - this.world.y) / scale;
         const pos = KG.screenToIso(localX, localY);
         this.hover = { col: pos.col, row: pos.row, visible: true };
         if (!pointer.isDown || !this.dragStart) return;
@@ -33,13 +35,15 @@
         if (this.dragging) {
           this.world.x = this.dragStart.wx + dx;
           this.world.y = this.dragStart.wy + dy;
+          this.clampWorldPosition();
         }
       });
       this.input.on('pointerout', () => { this.hover.visible = false; });
       this.input.on('pointerup', (pointer) => {
         if (this.dragging) return;
-        const localX = pointer.x - this.world.x;
-        const localY = pointer.y - this.world.y;
+        const scale = this.world.scaleX || 1;
+        const localX = (pointer.x - this.world.x) / scale;
+        const localY = (pointer.y - this.world.y) / scale;
         const pos = KG.screenToIso(localX, localY);
         if (this.model.state.currentTool === 'select') this.model.selectNearestKoala(pos.col, pos.row);
         else this.model.placeAt(pos.col, pos.row);
@@ -53,22 +57,53 @@
       });
       this.renderAll();
     }
+    getBoardBounds() {
+      const corners = [
+        KG.isoToWorld(0, 0),
+        KG.isoToWorld(KG.GRID_COLS, 0),
+        KG.isoToWorld(0, KG.GRID_ROWS),
+        KG.isoToWorld(KG.GRID_COLS, KG.GRID_ROWS),
+      ];
+      const minX = Math.min(...corners.map(p => p.x)) - 80;
+      const maxX = Math.max(...corners.map(p => p.x)) + 80;
+      const minY = Math.min(...corners.map(p => p.y)) - 60;
+      const maxY = Math.max(...corners.map(p => p.y)) + 120;
+      return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY };
+    }
+    fitWorldToViewport() {
+      const bounds = this.getBoardBounds();
+      const availableWidth = Math.max(280, this.scale.width - 24);
+      const availableHeight = Math.max(240, this.scale.height - 24);
+      const scaleX = availableWidth / bounds.width;
+      const scaleY = availableHeight / bounds.height;
+      const targetScale = Phaser.Math.Clamp(Math.min(scaleX, scaleY, 1), 0.55, 1);
+      this.world.setScale(targetScale);
+      this._boardBounds = bounds;
+    }
     centerWorld() {
-      this.world.x = Math.floor(this.scale.width * 0.5);
-      this.world.y = 90;
+      this.fitWorldToViewport();
+      const bounds = this._boardBounds || this.getBoardBounds();
+      const s = this.world.scaleX || 1;
+      const centeredX = Math.floor((this.scale.width - (bounds.minX + bounds.maxX) * s) * 0.5);
+      const centeredY = Math.floor((this.scale.height - (bounds.minY + bounds.maxY) * s) * 0.5);
+      this.world.x = centeredX;
+      this.world.y = centeredY;
       this.clampWorldPosition();
     }
     clampWorldPosition() {
-      const padX = Math.max(140, this.scale.width * 0.18);
-      const padY = Math.max(120, this.scale.height * 0.16);
-      const minX = this.scale.width - padX;
-      const maxX = padX;
-      const minY = this.scale.height - padY;
-      const maxY = padY;
+      const bounds = this._boardBounds || this.getBoardBounds();
+      const s = this.world.scaleX || 1;
+      const padX = Math.max(36, this.scale.width * 0.06);
+      const padY = Math.max(36, this.scale.height * 0.06);
+      const minX = this.scale.width - (bounds.maxX * s) - padX;
+      const maxX = -(bounds.minX * s) + padX;
+      const minY = this.scale.height - (bounds.maxY * s) - padY;
+      const maxY = -(bounds.minY * s) + padY;
       this.world.x = Phaser.Math.Clamp(this.world.x, minX, maxX);
       this.world.y = Phaser.Math.Clamp(this.world.y, minY, maxY);
     }
     update(timeMs, deltaMs) {
+
       this.model.update(deltaMs / 1000);
       this.renderAll(timeMs / 1000);
       this.playFxEvents();
