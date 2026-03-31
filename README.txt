@@ -55,3 +55,9 @@ Touch zoom patch:
 - added mouse wheel zoom for desktop convenience
 - improved touch handling so pinch gestures do not trigger accidental tile placement
 - disabled browser touch scrolling on the game surface
+
+
+Toolbar visibility patch:
+- made the bottom tool bar sticky so it stays visible on iPad while panning and zooming
+- added safe-area padding for tablets and phones with bottom browser chrome
+- lifted toast stack so notifications do not cover the bottom tool bar
