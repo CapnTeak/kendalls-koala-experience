@@ -48,3 +48,10 @@ Finish and harden patch:
 - made DOM element lookup safer with console warnings for missing IDs
 - added Escape-to-close for quiz and report modals
 - added focus-visible button styling and reduced-motion CSS support
+
+
+Touch zoom patch:
+- added two-finger pinch-to-zoom for iPad and touch devices
+- added mouse wheel zoom for desktop convenience
+- improved touch handling so pinch gestures do not trigger accidental tile placement
+- disabled browser touch scrolling on the game surface

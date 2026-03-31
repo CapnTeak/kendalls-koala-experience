@@ -16,19 +16,35 @@
       this.input.addPointer(2);
 
       this.hover = { col: 0, row: 0, visible: false };
+      this.dragging = false;
+      this.pinching = false;
+      this.didPinch = false;
+      this.minZoom = 0.45;
+      this.maxZoom = 1.6;
       this.lightingOverlay = this.add.rectangle(0, 0, this.scale.width, this.scale.height, 0x11233f, 0).setOrigin(0).setScrollFactor(0).setDepth(999);
       this.centerWorld();
       this.input.on('pointerdown', (pointer) => {
+        const activePointers = this.getActivePointers();
+        if (activePointers.length >= 2) {
+          this.beginPinch(activePointers);
+          return;
+        }
         this.dragging = false;
         this.dragStart = { x: pointer.x, y: pointer.y, wx: this.world.x, wy: this.world.y };
       });
       this.input.on('pointermove', (pointer) => {
+        const activePointers = this.getActivePointers();
+        if (activePointers.length >= 2) {
+          if (!this.pinching) this.beginPinch(activePointers);
+          this.updatePinch(activePointers);
+          return;
+        }
         const scale = this.world.scaleX || 1;
         const localX = (pointer.x - this.world.x) / scale;
         const localY = (pointer.y - this.world.y) / scale;
         const pos = KG.screenToIso(localX, localY);
         this.hover = { col: pos.col, row: pos.row, visible: true };
-        if (!pointer.isDown || !this.dragStart) return;
+        if (!pointer.isDown || !this.dragStart || this.pinching) return;
         const dx = pointer.x - this.dragStart.x;
         const dy = pointer.y - this.dragStart.y;
         if (Math.hypot(dx, dy) > 8) this.dragging = true;
@@ -40,6 +56,15 @@
       });
       this.input.on('pointerout', () => { this.hover.visible = false; });
       this.input.on('pointerup', (pointer) => {
+        const activePointers = this.getActivePointers();
+        if (this.pinching && activePointers.length < 2) {
+          this.pinching = false;
+          this.dragStart = null;
+        }
+        if (this.didPinch) {
+          if (activePointers.length === 0) this.didPinch = false;
+          return;
+        }
         if (this.dragging) return;
         const scale = this.world.scaleX || 1;
         const localX = (pointer.x - this.world.x) / scale;
@@ -49,6 +74,10 @@
         else this.model.placeAt(pos.col, pos.row);
         this.renderAll();
       });
+      this.input.on('wheel', (pointer, _go, _dx, dy) => {
+        const zoomFactor = dy > 0 ? 0.92 : 1.08;
+        this.zoomAt(pointer.x, pointer.y, (this.world.scaleX || 1) * zoomFactor);
+      });
       this.scale.on('resize', (gameSize) => {
         this.centerWorld();
         this.lightingOverlay.setSize(gameSize.width, gameSize.height);
@@ -57,6 +86,49 @@
       });
       this.renderAll();
     }
+
+    getActivePointers() {
+      return this.input.manager.pointers.filter(pointer => pointer.isDown);
+    }
+    beginPinch(activePointers) {
+      if (!activePointers || activePointers.length < 2) return;
+      const [a, b] = activePointers;
+      const midX = (a.x + b.x) * 0.5;
+      const midY = (a.y + b.y) * 0.5;
+      const scale = this.world.scaleX || 1;
+      this.pinching = true;
+      this.didPinch = true;
+      this.dragging = false;
+      this.dragStart = null;
+      this.pinchStart = {
+        distance: Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y),
+        scale,
+        localX: (midX - this.world.x) / scale,
+        localY: (midY - this.world.y) / scale,
+      };
+    }
+    updatePinch(activePointers) {
+      if (!this.pinchStart || !activePointers || activePointers.length < 2) return;
+      const [a, b] = activePointers;
+      const midX = (a.x + b.x) * 0.5;
+      const midY = (a.y + b.y) * 0.5;
+      const distance = Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y);
+      const baseDistance = Math.max(24, this.pinchStart.distance || 1);
+      const nextScale = this.pinchStart.scale * (distance / baseDistance);
+      this.zoomAt(midX, midY, nextScale, this.pinchStart.localX, this.pinchStart.localY);
+    }
+    zoomAt(screenX, screenY, requestedScale, anchorLocalX = null, anchorLocalY = null) {
+      const currentScale = this.world.scaleX || 1;
+      const nextScale = Phaser.Math.Clamp(requestedScale, this.minZoom, this.maxZoom);
+      const localX = anchorLocalX ?? ((screenX - this.world.x) / currentScale);
+      const localY = anchorLocalY ?? ((screenY - this.world.y) / currentScale);
+      this.world.setScale(nextScale);
+      this.world.x = screenX - localX * nextScale;
+      this.world.y = screenY - localY * nextScale;
+      this.clampWorldPosition();
+      this.renderAll();
+    }
+
     getBoardBounds() {
       const corners = [
         KG.isoToWorld(0, 0),
