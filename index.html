@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kendall's Koala Experience</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+  <script defer src="src/config.js"></script>
+  <script defer src="src/utils.js"></script>
+  <script defer src="src/state.js"></script>
+  <script defer src="src/ui.js"></script>
+  <script defer src="src/gameModel.js"></script>
+  <script defer src="src/sceneMain.js"></script>
+  <script defer src="src/main.js"></script>
+</head>
+<body>
+  <div id="app-shell">
+    <header id="topbar">
+      <div class="brand">🐨 Kendall's Koala Experience</div>
+      <div id="stats">
+        <span id="money-display">$500</span>
+        <span id="visitors-display">0 visitors</span>
+        <span id="care-display">Care 50</span>
+        <span id="time-display">☀️ Afternoon D1</span>
+      </div>
+      <div class="header-actions">
+        <button id="save-btn">Save</button>
+        <button id="load-btn">Load</button>
+        <button id="pause-btn">Pause</button>
+      </div>
+    </header>
+
+    <main id="game-wrap">
+      <div id="phaser-game"></div>
+      <aside id="sidebar">
+        <section class="panel tutorial-panel" id="tutorial-panel">
+          <div class="panel-topline">Guide</div>
+          <h3 id="tutorial-title">Welcome to the habitat</h3>
+          <div id="tutorial-body">Select tools below and click the board to build.</div>
+          <div class="tutorial-actions">
+            <button id="tutorial-dismiss-btn">Got it</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <h3>Current Mission</h3>
+          <div id="mission-title">Welcome Visitors</div>
+          <div id="mission-body">Extend the boardwalk by 4 tiles.</div>
+          <div class="meter"><div id="mission-fill"></div></div>
+          <div id="mission-progress">0 / 4</div>
+        </section>
+        <section class="panel">
+          <h3>Selected Koala</h3>
+          <div id="koala-card">Click a koala to inspect it.</div>
+        </section>
+        <section class="panel smallprint">
+          <div class="panel-topline">Progression</div>
+          <h3>Habitat Rank</h3>
+          <div id="progression-rank">Starter Sanctuary</div>
+          <div id="progression-body">Keep building and caring for koalas to unlock habitat bonuses.</div>
+          <div class="meter"><div id="progression-fill"></div></div>
+          <div id="progression-progress">0 / 1</div>
+        </section>
+        <section class="panel smallprint">
+          <div class="panel-topline">Daily summary</div>
+          <h3>Habitat Report</h3>
+          <div id="report-preview">Reports appear at the end of each day.</div>
+          <button id="open-report-btn">Open report</button>
+        </section>
+      </aside>
+    </main>
+
+    <footer id="toolbar"></footer>
+    <div id="toast-stack"></div>
+
+    <div id="quiz-modal" class="modal-backdrop hidden" aria-hidden="true">
+      <div class="modal-card quiz-card">
+        <div class="modal-header">
+          <div>
+            <div class="panel-topline">Quiz Check-in</div>
+            <h3 id="quiz-title">Koala Care Quiz</h3>
+          </div>
+        </div>
+        <div id="quiz-body" class="quiz-body">
+          <div id="quiz-question">Question goes here.</div>
+          <div id="quiz-answers" class="quiz-answers"></div>
+          <div id="quiz-feedback" class="quiz-feedback hidden"></div>
+        </div>
+        <div class="modal-actions quiz-actions hidden" id="quiz-actions">
+          <button id="quiz-close-btn">Back to habitat</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="report-modal" class="modal-backdrop hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <div class="panel-topline">Daily summary</div>
+            <h3 id="report-title">Habitat Report</h3>
+          </div>
+          <button id="close-report-btn" class="icon-btn">✕</button>
+        </div>
+        <div id="report-body" class="report-body"></div>
+        <div class="modal-actions">
+          <button id="report-ok-btn">Back to habitat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
