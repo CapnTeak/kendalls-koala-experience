@@ -5,7 +5,7 @@ body {
   background: linear-gradient(180deg, #dfeee3, #c7ded0 45%, #bfd6cb);
   color: #173222;
 }
-#app-shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+#app-shell { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-rows: auto 1fr auto; }
 #topbar {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 12px 16px; background: rgba(255,255,255,0.82); backdrop-filter: blur(10px);
@@ -41,7 +41,7 @@ button { cursor: pointer; }
 .meter { height: 12px; background: rgba(0,0,0,0.08); border-radius: 999px; overflow: hidden; margin: 8px 0; }
 #mission-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #67b967, #b6d875); }
 #toolbar {
-  display: flex; gap: 8px; overflow-x: auto; padding: 12px; background: rgba(255,255,255,0.72); border-top: 1px solid rgba(0,0,0,0.08);
+  display: flex; gap: 8px; overflow-x: auto; padding: 12px; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba(255,255,255,0.92); border-top: 1px solid rgba(0,0,0,0.08); position: sticky; bottom: 0; z-index: 70; backdrop-filter: blur(10px);
 }
 .tool-btn.active { background: #173222; color: white; }
 .tool-btn.attention { box-shadow: 0 0 0 3px rgba(255, 213, 79, 0.45), 0 8px 20px rgba(0,0,0,0.08); }
@@ -86,6 +86,17 @@ button { cursor: pointer; }
   background: rgba(23,50,34,0.82); color: #fff; font-size: 12px; z-index: 20; display: none;
 }
 @media (max-width: 1100px) { #game-wrap { grid-template-columns: 1fr; } #phaser-game { height: 560px; min-height: 560px; } }
+
+@media (pointer: coarse) {
+  #toolbar {
+    position: sticky;
+    bottom: 0;
+  }
+  #toast-stack {
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
 @media (max-width: 680px) { .report-grid { grid-template-columns: 1fr; } }
 
 #progression-rank { font-weight: 800; margin-bottom: 6px; }

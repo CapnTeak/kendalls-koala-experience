@@ -61,3 +61,10 @@ Toolbar visibility patch:
 - made the bottom tool bar sticky so it stays visible on iPad while panning and zooming
 - added safe-area padding for tablets and phones with bottom browser chrome
 - lifted toast stack so notifications do not cover the bottom tool bar
+
+
+Pinch-zoom restore patch:
+- restored two-finger pinch zoom after the sticky toolbar update
+- kept one-finger drag pan in Select mode
+- prevented tile placement during pinch gestures
+- kept toolbar touch interaction working independently from the game canvas

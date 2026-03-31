@@ -7,6 +7,10 @@
       KG.shared.scene = this;
       this.model = KG.shared.model;
       this.world = this.add.container(0, 0);
+      this.worldScale = 1;
+      this.isPinching = false;
+      this.pinchStartDistance = 0;
+      this.pinchStartScale = 1;
       this.tileLayer = this.add.container(0, 0);
       this.overlayLayer = this.add.container(0, 0);
       this.actorLayer = this.add.container(0, 0);
